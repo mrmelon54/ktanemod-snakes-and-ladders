@@ -1,1 +1,1 @@
-ktanemod-snakes-and-ladders
+#[ModKit Wiki](../../wiki)
