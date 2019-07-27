@@ -398,4 +398,35 @@ public class snakesAndLaddersModScript : MonoBehaviour {
 
         yield break;
     }*/
+    public string TwitchHelpMessage = "Use '!{0} press 1' to press the 1st button!";
+    IEnumerator ProcessTwitchCommand(string command)
+    {
+        string commandl = command.Replace("press ", "");
+        int tried;
+        if(int.TryParse(commandl, out tried)){
+            tried = int.Parse(commandl);
+            if(tried>0){
+                if(tried<101){
+                    yield return null;
+                    yield return SquareBox[tried-1].GetComponent<KMSelectable>();
+                    yield return SquareBox[tried-1].GetComponent<KMSelectable>();
+                }
+                else{
+                    yield return null;
+                    yield return "sendtochaterror Digit too big!";
+                    yield break;
+                }
+            }
+            else{
+                yield return null;
+                yield return "sendtochaterror Digit too small!";
+                yield break;
+            }
+        }   
+        else{
+            yield return null;
+            yield return "sendtochaterror Digit not valid.";
+            yield break;
+        }
+    }
 }
