@@ -65,8 +65,8 @@ public class snakesAndLaddersModScript : MonoBehaviour {
 
         moveSquare=true;
         currentSquareId=0;
-        lightOldPos=PlayerBox.transform.position;
-        lightNewPos=SquareBox[currentSquareId].transform.position;
+        lightOldPos=PlayerBox.transform.localPosition;
+        lightNewPos=PlayerBox.transform.parent.InverseTransformPoint(SquareBox[currentSquareId].transform.position);
         t=.999f;
         animateLight();
     }
@@ -77,18 +77,14 @@ public class snakesAndLaddersModScript : MonoBehaviour {
             moveSquare=true;
             currentSquareId++;
             if(currentSquareId>99)currentSquareId=0;
-            lightOldPos=PlayerBox.transform.position;
-            lightNewPos=SquareBox[currentSquareId].transform.position;
+            lightOldPos=PlayerBox.transform.localPosition;
+            lightNewPos=PlayerBox.transform.parent.InverseTransformPoint(SquareBox[currentSquareId].transform.position);
             t=0f;
             animateLight();
         }
         if(moveSquare){
             animateLight();
         }
-    }
-
-    float Lerp(float m, float n, float t) {
-        return (m-n)*t+n;
     }
 
     void animateLight() {
@@ -102,8 +98,8 @@ public class snakesAndLaddersModScript : MonoBehaviour {
                     currentSquareId=99;
                     toAddOn=0;
                 }
-                lightOldPos=PlayerBox.transform.position;
-                lightNewPos=SquareBox[currentSquareId].transform.position;
+                lightOldPos=PlayerBox.transform.localPosition;
+                lightNewPos=PlayerBox.transform.parent.InverseTransformPoint(SquareBox[currentSquareId].transform.position);
                 t=0f;
             } else {
                 if(beenOn.Contains(currentSquareId)) {
@@ -115,8 +111,8 @@ public class snakesAndLaddersModScript : MonoBehaviour {
                     LadderScript ls=ladders[i].GetComponent<LadderScript>();
                     if(ls.start==currentSquareId+1){
                         currentSquareId=ls.end-1;
-                        lightOldPos=PlayerBox.transform.position;
-                        lightNewPos=SquareBox[currentSquareId].transform.position;
+                        lightOldPos=PlayerBox.transform.localPosition;
+                        lightNewPos=PlayerBox.transform.parent.InverseTransformPoint(SquareBox[currentSquareId].transform.position);
                         t=0f;
                         animateLight();
                         return;
@@ -127,8 +123,8 @@ public class snakesAndLaddersModScript : MonoBehaviour {
                     SnakeScript ss=snakes[i].GetComponent<SnakeScript>();
                     if(ss.start==currentSquareId+1){
                         currentSquareId=ss.end-1;
-                        lightOldPos=PlayerBox.transform.position;
-                        lightNewPos=SquareBox[currentSquareId].transform.position;
+                        lightOldPos=PlayerBox.transform.localPosition;
+                        lightNewPos=PlayerBox.transform.parent.InverseTransformPoint(SquareBox[currentSquareId].transform.position);
                         t=0f;
                         animateLight();
                         return;
@@ -143,7 +139,7 @@ public class snakesAndLaddersModScript : MonoBehaviour {
         }
         Vector3 p=lightOldPos;
         Vector3 n=lightNewPos;
-        PlayerBox.transform.position=new Vector3(Lerp(n.x,p.x,t),Lerp(n.y,p.y,t),Lerp(n.z,p.z,t));
+        PlayerBox.transform.localPosition=Vector3.Lerp(p, n, t);
     }
 
     void GenerateBoard() {
@@ -297,8 +293,8 @@ public class snakesAndLaddersModScript : MonoBehaviour {
         moveSquare=true;
         toAddOn=r;
         if(currentSquareId>99)currentSquareId=99;
-        lightOldPos=PlayerBox.transform.position;
-        lightNewPos=SquareBox[currentSquareId].transform.position;
+        lightOldPos=PlayerBox.transform.localPosition;
+        lightNewPos=PlayerBox.transform.parent.InverseTransformPoint(SquareBox[currentSquareId].transform.position);
         t=0f;
         animateLight();
     }
