@@ -190,7 +190,7 @@ public class snakesAndLaddersModScript : MonoBehaviour {
             SquareBox[i].GetComponent<SquareScript>().SetMaterials(redMat,blueMat,greenMat,yellowMat);
             SquareBox[i].GetComponent<SquareScript>().SetNumber(i+1);
             SquareBox[i].GetComponent<SquareScript>().SetColour(r);
-            
+
             if(i%10==9)boardStr+="/";
 
             SquareBox[i].GetComponent<KMSelectable>().OnInteract += delegate() {
@@ -316,89 +316,17 @@ public class snakesAndLaddersModScript : MonoBehaviour {
 
         return;
     }
-/*
+
 #pragma warning disable 414
-    private readonly string TwitchHelpMessage = @"Submit your answer with “!{0} press 1|R|Y|9|P|0s0|3 (add sX [where 'X' is a digit] to press the button when the last seconds digit of the bomb is 'X')”. Delete screen with “!{0} delete 5 (number of times to press the button)”. Submit answer with “!{0} go 40 (submit when the seconds of the bomb is the number)”.";
+    public readonly string TwitchHelpMessage = "Use “!{0} press <n>” to press the button numbered n!";
 #pragma warning restore 414
-
-    IEnumerator ProcessTwitchCommand(string command) {
-        command = command.ToLowerInvariant().Trim();
-
-        if (Regex.IsMatch(command, @"^press +[0-9roygbps|]+$")) {
-            command = command.Substring(6).Trim();
-            var presses = command.Split('|');
-
-            for (var i = 0; i < presses.Length; i++) {
-                KMSelectable pressButton;
-
-                if (Regex.IsMatch(presses[i], @"^[0-9]$") || Regex.IsMatch(presses[i], @"^[0-9][s][0-9]$")) {
-                    pressButton = SquareBox[int.Parse(presses[i].First().ToString())];
-
-                    if (Regex.IsMatch(presses[i], @"^[0-9][s][0-9]$")) {
-                        string formattedTime;
-
-                        do {
-                            formattedTime = BombInfo.GetFormattedTime();
-
-                            if (BombInfo.GetTime() < 60f)
-                                formattedTime = BombInfo.GetFormattedTime().Substring(0, 2);
-
-                            yield return new WaitForSeconds(0.1f);
-                        } while (int.Parse(formattedTime.Last().ToString()) != int.Parse(presses[i].Last().ToString()));
-                    }
-                } else if (Regex.IsMatch(presses[i], @"^[r|o|y|g|b|p]$")) {
-                    var colorLetters = new[] { "r", "o", "y", "g", "b", "p" };
-                    pressButton = ColouredButtons[Array.IndexOf(colorLetters, presses[i])];
-                } else {
-                    continue;
-                }
-
-                yield return pressButton;
-                yield return new WaitForSeconds(0.1f);
-                yield return pressButton;
-            }
-        }
-
-        if (Regex.IsMatch(command, @"^delete [1-7]$")) {
-            yield return null;
-            for (var i = 0; i < int.Parse(command.Substring(7).Trim()); i++) {
-                yield return deleteButton;
-                yield return new WaitForSeconds(0.1f);
-                yield return deleteButton;
-            }
-        }
-
-        if (Regex.IsMatch(command, @"^go \d\d$")) {
-            command = command.Substring(3);
-
-            if (int.Parse(command) < 60) {
-                string formattedTime;
-
-                do {
-                    formattedTime = BombInfo.GetFormattedTime();
-
-                    if (BombInfo.GetTime() < 60f) {
-                        formattedTime = BombInfo.GetFormattedTime().Substring(0, 2);
-                    } else {
-                        formattedTime = formattedTime.Substring(formattedTime.Length - 2, 2);
-                    }
-
-                    yield return new WaitForSeconds(0.1f);
-                } while (int.Parse(formattedTime) != int.Parse(command.ToString()));
-
-                yield return submitButton;
-                yield return new WaitForSeconds(0.1f);
-                yield return submitButton;
-            }
-        }
-
-        yield break;
-    }*/
-    public string TwitchHelpMessage = "Use '!{0} press 1' to press the 1st button!";
     IEnumerator ProcessTwitchCommand(string command)
     {
         string commandl = command.Replace("press ", "");
         int tried;
+        if(commandl=="hole") {
+            commandl="100";
+        }
         if(int.TryParse(commandl, out tried)){
             tried = int.Parse(commandl);
             if(tried>0){
@@ -418,7 +346,7 @@ public class snakesAndLaddersModScript : MonoBehaviour {
                 yield return "sendtochaterror Digit too small!";
                 yield break;
             }
-        }   
+        }
         else{
             yield return null;
             yield return "sendtochaterror Digit not valid.";

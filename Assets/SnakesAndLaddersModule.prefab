@@ -40413,7 +40413,6 @@ MonoBehaviour:
   - {fileID: 1888694590361328}
   - {fileID: 1965514983323084}
   moveSquareBtn: 0
-  TwitchHelpMessage: Use '!{0} press 1' to press the 1st button!
 --- !u!114 &114775320158358248
 MonoBehaviour:
   m_ObjectHideFlags: 1
