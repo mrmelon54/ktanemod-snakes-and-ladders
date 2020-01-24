@@ -36,9 +36,8 @@ public class SquareScript : MonoBehaviour {
 
 	public void SetNumber(int n) {
 		num=n;
-		if(isFinish)return;
 		text.GetComponent<TextMesh>().text=num.ToString();
-		return;
+        return;
 	}
 
 	public int GetNumber() {
@@ -48,8 +47,8 @@ public class SquareScript : MonoBehaviour {
 	public void SetColour(int c) {
 		col=c;
 		if(isFinish)return;
-		block.GetComponent<Renderer>().material=c==0?redM:c==1?blueM:c==2?greenM:yellowM;
-		return;
+        block.GetComponent<Renderer>().material = c == 0 ? redM : c == 1 ? blueM : c == 2 ? greenM : yellowM;
+        return;
 	}
 
 	public int GetColour() {
