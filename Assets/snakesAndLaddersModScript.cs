@@ -387,7 +387,7 @@ public class snakesAndLaddersModScript : MonoBehaviour {
 
     //twitch plays
     #pragma warning disable 414
-    public readonly string TwitchHelpMessage = "Use “!{0} press <n>” to press the button numbered n! Use !{0} colorblind <n> to view the color of the button numbered n on the top left button!";
+    public readonly string TwitchHelpMessage = "Use “!{0} press <n>” to press the button numbered n! Use !{0} colorblind <n> to find out the color of the button numbered n!";
     #pragma warning restore 414
     IEnumerator ProcessTwitchCommand(string command)
     {
@@ -411,9 +411,15 @@ public class snakesAndLaddersModScript : MonoBehaviour {
             }
             else
             {
-                SquareBox[temp - 1].GetComponent<KMSelectable>().OnHighlight();
-                yield return new WaitForSeconds(1.0f);
-                SquareBox[temp - 1].GetComponent<KMSelectable>().OnHighlightEnded();
+                string[] colors = { "Red", "Blue", "Green", "Yellow" };
+                if(temp == 100)
+                {
+                    yield return "sendtochat The color of the " + parameters[1] + " square is :)";
+                }
+                else
+                {
+                    yield return "sendtochat The color of the " + parameters[1] + " square is " + colors[SquareBox[temp - 1].GetComponent<SquareScript>().GetColour()];
+                }
                 yield break;
             }
         }
