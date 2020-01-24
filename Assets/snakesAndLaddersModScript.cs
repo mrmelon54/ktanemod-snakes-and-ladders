@@ -258,6 +258,7 @@ public class snakesAndLaddersModScript : MonoBehaviour {
             doLog("100 square reached! Module Solved!");
             SquareBox[99].GetComponent<SquareScript>().text.GetComponent<TextMesh>().text = "";
             BombModule.HandlePass();
+            return;
         }
 
         int n=SquareBox[currentSquareId].GetComponent<SquareScript>().GetNumber();
