@@ -54,6 +54,7 @@ public class snakesAndLaddersModScript : MonoBehaviour {
     private int toAddOn=0;
     private int lastRoll=0;
     private bool preventModuleUsage=true;
+    private float lightspeed = 10f;
 
     bool moduleSolved;
 
@@ -137,7 +138,7 @@ public class snakesAndLaddersModScript : MonoBehaviour {
     }
 
     void animateLight() {
-        t+=2f*Time.deltaTime;
+        t+=lightspeed*Time.deltaTime;
         if(t>1f){
             t=1f;
             if(toAddOn>0){
