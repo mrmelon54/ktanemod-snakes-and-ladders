@@ -23,6 +23,7 @@ public class snakesAndLaddersModScript : MonoBehaviour {
     public GameObject BoardObject;
     public GameObject SquarePrefab;
     public GameObject PlayerBox;
+    public GameObject forcesolveddialog;
 
     public GameObject[] ladders;
     public GameObject[] snakes;
@@ -258,6 +259,7 @@ public class snakesAndLaddersModScript : MonoBehaviour {
             moduleSolved=true;
             doLog("100 square reached! Module Solved!");
             SquareBox[99].GetComponent<SquareScript>().text.GetComponent<TextMesh>().text = "";
+            forcesolveddialog.SetActive(false);
             BombModule.HandlePass();
             return;
         }
@@ -465,6 +467,7 @@ public class snakesAndLaddersModScript : MonoBehaviour {
     {
         while (!moduleSolved)
         {
+            forcesolveddialog.SetActive(true);
             while (moveSquare) { yield return true; yield return new WaitForSeconds(0.1f); }
             SquareBox[nextCorrectSquare-1].GetComponent<KMSelectable>().OnInteract();
             yield return new WaitForSeconds(0.1f);
