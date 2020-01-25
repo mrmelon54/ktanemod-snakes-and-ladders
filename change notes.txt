@@ -3,3 +3,15 @@ Version 1.0
 
 Version 1.1
   - Qkrisi added TP Support
+
+Version 2.0
+- The module actually works now
+
+Version 3.0:
+- Colourblind mode and other improvements thanks to eXish
+
+Version 3.1:
+- Hopefully the snakes work now
+
+Version 3.2:
+- OMG the snakes work now xD
