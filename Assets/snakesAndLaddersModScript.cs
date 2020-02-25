@@ -58,6 +58,7 @@ public class snakesAndLaddersModScript : MonoBehaviour {
     private float lightspeed = 10f;
 
     bool moduleSolved;
+    bool cooldown;
 
     static int moduleIdCounter = 1;
     int moduleId;
@@ -69,19 +70,37 @@ public class snakesAndLaddersModScript : MonoBehaviour {
             button.OnHighlight += delegate () { HLButton(button); };
             button.OnHighlightEnded += delegate () { HLEndButton(); };
         }
-        GenerateBoard();
+        for (int i = 0; i < ladders.Length; i++)
+        {
+            ladders[i].SetActive(false);
+        }
+        for (int i = 0; i < snakes.Length; i++)
+        {
+            snakes[i].SetActive(false);
+        }
+        for (int i = 0; i < SquareBox.Length; i++)
+        {
+            SquareBox[i].GetComponent<SquareScript>().text.GetComponent<TextMesh>().text = "";
+        }
+        BombModule.OnActivate += OnActivate;
 
+        cooldown=true;
         moveSquare=true;
         currentSquareId=0;
         lightOldPos=PlayerBox.transform.localPosition;
         lightNewPos=PlayerBox.transform.parent.InverseTransformPoint(SquareBox[currentSquareId].transform.position);
         t=.999f;
-        animateLight();
+    }
+
+    void OnActivate()
+    {
+        GenerateBoard();
+        cooldown = false;
     }
 
     void HLButton(KMSelectable hovered)
     {
-        if (moduleSolved == false)
+        if (moduleSolved == false && cooldown == false)
         {
             for(int i = 0; i < SquareBox.Length; i++)
             {
@@ -118,7 +137,7 @@ public class snakesAndLaddersModScript : MonoBehaviour {
 
     void HLEndButton()
     {
-        if(moduleSolved == false)
+        if(moduleSolved == false && cooldown == false)
             SquareBox[99].GetComponent<SquareScript>().text.GetComponent<TextMesh>().text = "100";
     }
 
@@ -133,7 +152,7 @@ public class snakesAndLaddersModScript : MonoBehaviour {
             t=0f;
             animateLight();
         }
-        if(moveSquare){
+        if(moveSquare && !cooldown){
             animateLight();
         }
     }
@@ -161,7 +180,14 @@ public class snakesAndLaddersModScript : MonoBehaviour {
                     if(!showLadders.Contains(i))continue;
                     LadderScript ls=ladders[i].GetComponent<LadderScript>();
                     if(ls.start==currentSquareId+1){
-                        currentSquareId=ls.end-1;
+                        int rando = Random.Range(0, 3);
+                        if (rando == 0)
+                            BombAudio.PlaySoundAtTransform("ladder1", SquareBox[currentSquareId].transform);
+                        else if (rando == 1)
+                            BombAudio.PlaySoundAtTransform("ladder2", SquareBox[currentSquareId].transform);
+                        else if (rando == 2)
+                            BombAudio.PlaySoundAtTransform("ladder3", SquareBox[currentSquareId].transform);
+                        currentSquareId =ls.end-1;
                         lightOldPos=PlayerBox.transform.localPosition;
                         lightNewPos=PlayerBox.transform.parent.InverseTransformPoint(SquareBox[currentSquareId].transform.position);
                         t=0f;
@@ -173,7 +199,14 @@ public class snakesAndLaddersModScript : MonoBehaviour {
                     if(!showSnakes.Contains(i))continue;
                     SnakeScript ss=snakes[i].GetComponent<SnakeScript>();
                     if(ss.start==currentSquareId+1){
-                        currentSquareId=ss.end-1;
+                        int rando = Random.Range(0, 3);
+                        if (rando == 0)
+                            BombAudio.PlaySoundAtTransform("snake1", SquareBox[ss.end - 1].transform);
+                        else if (rando == 1)
+                            BombAudio.PlaySoundAtTransform("snake2", SquareBox[ss.end - 1].transform);
+                        else if (rando == 2)
+                            BombAudio.PlaySoundAtTransform("snake3", SquareBox[ss.end - 1].transform);
+                        currentSquareId =ss.end-1;
                         lightOldPos=PlayerBox.transform.localPosition;
                         lightNewPos=PlayerBox.transform.parent.InverseTransformPoint(SquareBox[currentSquareId].transform.position);
                         t=0f;
@@ -358,7 +391,7 @@ public class snakesAndLaddersModScript : MonoBehaviour {
     }
 
     void moveXSquares() {
-        int r=Random.Range(1,7);
+        int r = (int)BombInfo.GetTime() % 10;
 
         preventModuleUsage=true;
         moveSquare=true;
@@ -372,14 +405,16 @@ public class snakesAndLaddersModScript : MonoBehaviour {
     }
 
     void PressSquare(int buttonId) {
-        BombAudio.PlayGameSoundAtTransform(KMSoundOverride.SoundEffect.ButtonPress, transform);
+        BombAudio.PlayGameSoundAtTransform(KMSoundOverride.SoundEffect.ButtonPress, SquareBox[buttonId].transform);
         ModuleSelect.AddInteractionPunch();
+        int t = (int)BombInfo.GetTime() % 10;
 
-        if(moduleSolved)return;
+        if (moduleSolved || cooldown)return;
         if(preventModuleUsage)return;
+        if (t == 0)return;
 
-        if((buttonId+1)==nextCorrectSquare) {
-            doLog("The " + (buttonId + 1).ToString() + " square has been pressed, that is correct, moving status light forward");
+        if ((buttonId+1)==nextCorrectSquare) {
+            doLog("The " + (buttonId + 1).ToString() + " square has been pressed, that is correct, moving status light forward by " + t + "!");
             moveXSquares();
         } else {
             doLog("The " + (buttonId + 1).ToString() + " square has been pressed, that is incorrect, strike!");
@@ -465,12 +500,13 @@ public class snakesAndLaddersModScript : MonoBehaviour {
 
     IEnumerator TwitchHandleForcedSolve()
     {
+        forcesolveddialog.SetActive(true);
         while (!moduleSolved)
         {
-            forcesolveddialog.SetActive(true);
+            while ((int)BombInfo.GetTime() % 10 == 0) { yield return true; yield return new WaitForSeconds(0.1f); }
             while (moveSquare) { yield return true; yield return new WaitForSeconds(0.1f); }
-            SquareBox[nextCorrectSquare-1].GetComponent<KMSelectable>().OnInteract();
-            yield return new WaitForSeconds(0.1f);
+            while (currentSquareId + 1 + ((int)BombInfo.GetTime() % 10) == snakes[showSnakes[0]].GetComponent<SnakeScript>().start || currentSquareId + 1 + ((int)BombInfo.GetTime() % 10) == snakes[showSnakes[1]].GetComponent<SnakeScript>().start || currentSquareId + 1 + ((int)BombInfo.GetTime() % 10) == snakes[showSnakes[2]].GetComponent<SnakeScript>().start || currentSquareId + 1 + ((int)BombInfo.GetTime() % 10) == snakes[showSnakes[3]].GetComponent<SnakeScript>().start) { yield return true; yield return new WaitForSeconds(0.1f); }
+            SquareBox[nextCorrectSquare - 1].GetComponent<KMSelectable>().OnInteract();
         }
     }
 }
