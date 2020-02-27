@@ -94,10 +94,6 @@ e.onload = function()
             {
                 options.toggleClass('open');
             }
-            else if (event.keyCode >= 49 && event.keyCode <= 52)
-            {
-                $('.highlighter-color').eq(event.keyCode - 49).click();
-            }
         });
 
         // Highlighter mobile controls
