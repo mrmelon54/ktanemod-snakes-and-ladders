@@ -14,11 +14,11 @@ MonoBehaviour:
   id: snakesandladders
   title: Snakes and Ladders
   author: MrMelon
-  description: "Snakes and Ladders 3.2\n\r\nTo the two of you that grew up playing
+  description: "Snakes and Ladders 4.0\n\r\nTo the two of you that grew up playing
     'Chutes and Ladders' instead: how boring was that game?\n\nModule ID: snakesandladders\n\r\nCreated
     by: MrMelon\nIdea by: Blananas2\n\nCredits to TheThirdMan for the snake model\nCredits
     to Qkrisi for TP support\nCredits to Samfun123 for fixing the LED bug\nCredits
-    to eXish for version 3.0 updates and improvements\n\r\nManual available here:\r\nhttps://ktane.timwi.de/HTML/Snakes%20and%20Ladders.html"
-  version: 3.2
+    to eXish for version 3.0 and 4.0\n\r\nManual available here:\r\nhttps://ktane.timwi.de/HTML/Snakes%20and%20Ladders.html"
+  version: 4.0
   outputFolder: build
   previewImage: {fileID: 2800000, guid: be1d8f8246891174696b976b0ed1e86a, type: 3}
