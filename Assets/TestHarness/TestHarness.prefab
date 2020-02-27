@@ -20158,7 +20158,13 @@ MonoBehaviour:
   CustomWidget: {fileID: 114213089377510072}
   HighlightPrefab: {fileID: 100000, guid: d78a484c6e87f1b47b6596ac080fe942, type: 2}
   AudioVolume: 0.25
-  AudioClips: []
+  AudioClips:
+  - {fileID: 8300000, guid: 645b5392e5259444f9b76c0b68187e6d, type: 3}
+  - {fileID: 8300000, guid: a2cf255d7a1cb4d4084ecc2a8f7cf129, type: 3}
+  - {fileID: 8300000, guid: 5c91491f4487d074c9c2ee3cfbe171e3, type: 3}
+  - {fileID: 8300000, guid: 3592899a607b9c64b81c61fae964cede, type: 3}
+  - {fileID: 8300000, guid: 3cce0942746926b4fa4dda4d7d5190d0, type: 3}
+  - {fileID: 8300000, guid: 497b5e3cf1d864b48b3ed30ebea73969, type: 3}
   StrikeCount: 3
   TimeLimit: 600
   BombSize: 1
@@ -20168,7 +20174,7 @@ MonoBehaviour:
   TwitchPlaysMode: 0
   turnSpeed: 128
   panSpeed: 4
-  zoomSpeed: 30
+  zoomSpeed: 16
 --- !u!114 &114849122621401846
 MonoBehaviour:
   m_ObjectHideFlags: 1
