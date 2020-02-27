@@ -15,3 +15,11 @@ Version 3.1:
 
 Version 3.2:
 - OMG the snakes work now xD
+
+Version 4.0:
+- Updated modkit version for unity project
+- Made it so the module only displays everything upon activation
+- Major: Made it so when a correct button press is made it is no longer random but instead based on when you pressed it with the last digit of the bomb's timer
+- Manual changes to account for this major change (manual reprint required)
+- Slight changes to the autosolver to make up for new way it works (it will try to avoid hitting snakes)
+- Added sounds for whenever you climb a ladder and get eaten by a snake
