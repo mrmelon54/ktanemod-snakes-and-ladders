@@ -426,16 +426,16 @@ public class snakesAndLaddersModScript : MonoBehaviour {
 
     //twitch plays
     #pragma warning disable 414
-    public readonly string TwitchHelpMessage = "Use “!{0} press <n> <time>” to press the button numbered n when the last seconds digit in the bomb's timer is time! Use !{0} colorblind <n> to find out the color of the button numbered n!";
+    public readonly string TwitchHelpMessage = "Use “!{0} press <n> [time]” to press the button numbered n when the last seconds digit in the bomb's timer is time! Use !{0} colo(u)rblind <n> to find out the color of the button numbered n!";
     #pragma warning restore 414
     IEnumerator ProcessTwitchCommand(string command)
     {
         command = command.ToLower();
-        if (command.StartsWith("colorblind "))
+        if (command.StartsWith("colorblind ") || command.StartsWith("colourblind "))
         {
             string temp2 = command;
             temp2 = temp2.Replace(" ","");
-            if (temp2.Equals("colorblind"))
+            if (temp2.Equals("colorblind") || temp2.Equals("colourblind"))
             {
                 yield break;
             }
@@ -443,9 +443,9 @@ public class snakesAndLaddersModScript : MonoBehaviour {
             int temp = -1;
             int.TryParse(parameters[1], out temp);
             yield return null;
-            if (temp <= -1 || temp >= 101)
+            if (temp <= 0 || temp >= 101)
             {
-                yield return "sendtochaterror Digit out of range!";
+                yield return "sendtochaterror Square out of range!";
                 yield break;
             }
             else
@@ -475,24 +475,25 @@ public class snakesAndLaddersModScript : MonoBehaviour {
                 if(tried<101){
                     yield return null;
                     int time;
-                    if(!int.TryParse(cmds[1], out time))
-                    {
-                        yield return "sendtochaterror Time not valid.";
-                        yield break;
+                    if(cmds.Length==2) {
+                        if (!int.TryParse(cmds[1], out time)) {
+                            yield return "sendtochaterror Time not valid.";
+                            yield break;
+                        }
+                        if (time > 9) {
+                            yield return "sendtochaterror Time too big!";
+                            yield break;
+                        } else if (time < 0) {
+                            yield return "sendtochaterror Time too small!";
+                            yield break;
+                        }
+                        while ((int)BombInfo.GetTime() % 10 != time) { yield return "trycancel Halted waiting to press the square due to a request to cancel!"; yield return new WaitForSeconds(0.1f); }
+                        SquareBox[tried - 1].GetComponent<KMSelectable>().OnInteract();
+                        yield return new WaitForSeconds(0.1f);
+                    } else {
+                        SquareBox[tried - 1].GetComponent<KMSelectable>().OnInteract();
+                        yield return new WaitForSeconds(0.1f);
                     }
-                    if(time > 9)
-                    {
-                        yield return "sendtochaterror Time too big!";
-                        yield break;
-                    }
-                    else if (time < 0)
-                    {
-                        yield return "sendtochaterror Time too small!";
-                        yield break;
-                    }
-                    while ((int)BombInfo.GetTime() % 10 != time) { yield return "trycancel Halted waiting to press the square due to a request to cancel!"; yield return new WaitForSeconds(0.1f); }
-                    SquareBox[tried - 1].GetComponent<KMSelectable>().OnInteract();
-                    yield return new WaitForSeconds(0.1f);
                     if(currentSquareId + 1 + lastRoll > 99)
                     {
                         yield return "solve";

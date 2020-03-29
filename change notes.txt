@@ -23,3 +23,8 @@ Version 4.0:
 - Manual changes to account for this major change (manual reprint required)
 - Slight changes to the autosolver to make up for new way it works (it will try to avoid hitting snakes)
 - Added sounds for whenever you climb a ladder and get eaten by a snake
+
+Version 4.1:
+- Minor tweaks to wording in TP output
+- Fixed press square command with no time value
+- Change colorblind command to also accept British spelling
