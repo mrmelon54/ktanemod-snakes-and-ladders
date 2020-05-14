@@ -28,3 +28,7 @@ Version 4.1:
 - Minor tweaks to wording in TP output
 - Fixed press square command with no time value
 - Change colorblind command to also accept British spelling
+
+Version 4.2:
+- Added sound files to mod.bundle
+- Added timer visibility property
