@@ -42667,7 +42667,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   ModuleType: snakesAndLadders
   ModuleDisplayName: Snakes and Ladders
-  RequiresTimerVisibility: 0
+  RequiresTimerVisibility: 1
 --- !u!114 &114993183059421108
 MonoBehaviour:
   m_ObjectHideFlags: 1
