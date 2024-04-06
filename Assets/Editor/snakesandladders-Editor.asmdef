@@ -1,0 +1,10 @@
+{
+  "name": "snakesandladders-Editor",
+  "references": [
+    "snakesandladders"
+  ],
+  "includePlatforms": [
+    "Editor"
+  ],
+  "excludePlatforms": []
+}

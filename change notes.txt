@@ -32,3 +32,6 @@ Version 4.1:
 Version 4.2:
 - Added sound files to mod.bundle
 - Added timer visibility property
+
+Version 4.3:
+- Update modkit
