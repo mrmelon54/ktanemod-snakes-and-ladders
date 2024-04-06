@@ -1,8 +1,7 @@
-using System;
+﻿using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
-using System.Reflection;
 using EdgeworkConfigurator;
 using UnityEngine;
 using Random = UnityEngine.Random;
@@ -17,10 +16,10 @@ public class FakeBombInfo : MonoBehaviour
     public LightsOn ActivateLights;
     public TimerModule TimerModule;
 
-    public SerialNumber SerialNumberWidget;
-    public BatteryWidget BatteryWidget;
-    public PortWidget PortWidget;
-    public IndicatorWidget IndicatorWidget;
+    public TestHarnessSerialNumber SerialNumberWidget;
+    public TestHarnessBatteryWidget BatteryWidget;
+    public TestHarnessPortWidget PortWidget;
+    public TestHarnessIndicatorWidget IndicatorWidget;
     public TwoFactorWidget TwoFactorWidget;
     public CustomWidget CustomWidget;
 
@@ -43,7 +42,7 @@ public class FakeBombInfo : MonoBehaviour
                     if (m.OnActivate != null) m.OnActivate();
                 }
 
-                foreach (Widget w in widgets)
+                foreach (TestHarnessWidget w in widgets)
                 {
                     w.Activate();
                 }
@@ -106,9 +105,9 @@ public class FakeBombInfo : MonoBehaviour
 
     public List<KeyValuePair<KMBombModule, bool>> modules = new List<KeyValuePair<KMBombModule, bool>>();
     public List<KMNeedyModule> needyModules = new List<KMNeedyModule>();
-    public List<NeedyTimer> needyModuleTimers { get { return needyModules.Select(x => x.GetComponentInChildren<NeedyTimer>()).ToList(); } }
+    public List<TestHarnessNeedyTimer> needyModuleTimers { get { return needyModules.Select(x => x.GetComponentInChildren<TestHarnessNeedyTimer>()).ToList(); } }
 
-    public List<Widget> widgets = new List<Widget>();
+    public List<TestHarnessWidget> widgets = new List<TestHarnessWidget>();
 
     public List<string> GetModuleNames()
     {
@@ -144,10 +143,44 @@ public class FakeBombInfo : MonoBehaviour
         return moduleList;
     }
 
+    public List<string> GetModuleIDs()
+    {
+        List<string> moduleList = new List<string>();
+        foreach (KeyValuePair<KMBombModule, bool> m in modules)
+        {
+            moduleList.Add(m.Key.ModuleType);
+        }
+        foreach (KMNeedyModule m in needyModules)
+        {
+            moduleList.Add(m.ModuleType);
+        }
+        return moduleList;
+    }
+
+    public List<string> GetSolvableModuleIDs()
+    {
+        List<string> moduleList = new List<string>();
+        foreach (KeyValuePair<KMBombModule, bool> m in modules)
+        {
+            moduleList.Add(m.Key.ModuleType);
+        }
+        return moduleList;
+    }
+
+    public List<string> GetSolvedModuleIDs()
+    {
+        List<string> moduleList = new List<string>();
+        foreach (KeyValuePair<KMBombModule, bool> m in modules)
+        {
+            if (m.Value) moduleList.Add(m.Key.ModuleType);
+        }
+        return moduleList;
+    }
+
     public List<string> GetWidgetQueryResponses(string queryKey, string queryInfo)
     {
         List<string> responses = new List<string>();
-        foreach (Widget w in widgets)
+        foreach (TestHarnessWidget w in widgets)
         {
             string r = w.GetResult(queryKey, queryInfo);
             if (r != null) responses.Add(r);
@@ -169,9 +202,9 @@ public class FakeBombInfo : MonoBehaviour
         TimerModule.TimerRunning = false;
         exploded = true;
 
-        foreach (NeedyTimer timer in needyModuleTimers)
+        foreach (TestHarnessNeedyTimer timer in needyModuleTimers)
         {
-            timer.StopTimer(NeedyTimer.NeedyState.Terminated);
+            timer.StopTimer(TestHarnessNeedyTimer.NeedyState.Terminated);
         }
     }
 
@@ -215,8 +248,8 @@ public class FakeBombInfo : MonoBehaviour
         solved = true;
         if (HandleSolved != null) HandleSolved();
 
-        foreach (NeedyTimer timer in needyModuleTimers)
-            timer.StopTimer(NeedyTimer.NeedyState.BombComplete);
+        foreach (TestHarnessNeedyTimer timer in needyModuleTimers)
+            timer.StopTimer(TestHarnessNeedyTimer.NeedyState.BombComplete);
     }
 
     public delegate void LightState(bool state);
@@ -242,15 +275,15 @@ public class FakeBombInfo : MonoBehaviour
     /// <param name="config"></param>
     public void SetupEdgework(EdgeworkConfiguration config)
     {
-        widgets = new List<Widget>();
+        widgets = new List<TestHarnessWidget>();
         List<THWidget> RandomIndicators = new List<THWidget>();
         List<THWidget> RandomWidgets = new List<THWidget>();
 
-        widgets.Add(SerialNumber.CreateComponent(SerialNumberWidget, config));
-        serial = ((SerialNumber) widgets[0]).serial;
+        widgets.Add(TestHarnessSerialNumber.CreateComponent(SerialNumberWidget, config));
+        serial = ((TestHarnessSerialNumber) widgets[0]).serial;
 
         foreach (KMWidget widget in FindObjectsOfType<KMWidget>())
-            widgets.Add(widget.gameObject.AddComponent<ModWidget>());
+            widgets.Add(widget.gameObject.AddComponent<TestHarnessModWidget>());
 
         if (config == null)
         {
@@ -258,9 +291,9 @@ public class FakeBombInfo : MonoBehaviour
             for (int a = 0; a < numWidgets; a++)
             {
                 int r = Random.Range(0, 3);
-                if (r == 0) widgets.Add(PortWidget.CreateComponent(PortWidget));
-                else if (r == 1) widgets.Add(IndicatorWidget.CreateComponent(IndicatorWidget));
-                else widgets.Add(BatteryWidget.CreateComponent(BatteryWidget));
+                if (r == 0) widgets.Add(TestHarnessPortWidget.CreateComponent(PortWidget));
+                else if (r == 1) widgets.Add(TestHarnessIndicatorWidget.CreateComponent(IndicatorWidget));
+                else widgets.Add(TestHarnessBatteryWidget.CreateComponent(BatteryWidget));
             }
         }
         else
@@ -284,26 +317,26 @@ public class FakeBombInfo : MonoBehaviour
                             {
                                 if (widgetConfig.BatteryType == BatteryType.CUSTOM)
                                 {
-                                    widgets.Add(BatteryWidget.CreateComponent(BatteryWidget, widgetConfig.BatteryCount));
+                                    widgets.Add(TestHarnessBatteryWidget.CreateComponent(BatteryWidget, widgetConfig.BatteryCount));
                                 }
                                 else if (widgetConfig.BatteryType == BatteryType.RANDOM)
                                 {
-                                    widgets.Add(BatteryWidget.CreateComponent(BatteryWidget, Random.Range(widgetConfig.MinBatteries, widgetConfig.MaxBatteries + 1)));
+                                    widgets.Add(TestHarnessBatteryWidget.CreateComponent(BatteryWidget, Random.Range(widgetConfig.MinBatteries, widgetConfig.MaxBatteries + 1)));
                                 }
                                 else
                                 {
-                                    widgets.Add(BatteryWidget.CreateComponent(BatteryWidget, (int) widgetConfig.BatteryType));
+                                    widgets.Add(TestHarnessBatteryWidget.CreateComponent(BatteryWidget, (int) widgetConfig.BatteryType));
                                 }
                             }
                             break;
                         case WidgetType.INDICATOR:
                             if (widgetConfig.IndicatorLabel == IndicatorLabel.CUSTOM)
                             {
-                                widgets.Add(IndicatorWidget.CreateComponent(IndicatorWidget, widgetConfig.CustomLabel, widgetConfig.IndicatorState));
+                                widgets.Add(TestHarnessIndicatorWidget.CreateComponent(IndicatorWidget, widgetConfig.CustomLabel, widgetConfig.IndicatorState));
                             }
                             else
                             {
-                                widgets.Add(IndicatorWidget.CreateComponent(IndicatorWidget, widgetConfig.IndicatorLabel.ToString(), widgetConfig.IndicatorState));
+                                widgets.Add(TestHarnessIndicatorWidget.CreateComponent(IndicatorWidget, widgetConfig.IndicatorLabel.ToString(), widgetConfig.IndicatorState));
                             }
                             break;
                         case WidgetType.PORT_PLATE:
@@ -367,7 +400,7 @@ public class FakeBombInfo : MonoBehaviour
                                         if (Random.value > 0.5f) ports.Add(port);
                                     }
                                 }
-                                widgets.Add(PortWidget.CreateComponent(PortWidget, ports));
+                                widgets.Add(TestHarnessPortWidget.CreateComponent(PortWidget, ports));
                             }
                             break;
                         case WidgetType.TWOFACTOR:
@@ -387,16 +420,16 @@ public class FakeBombInfo : MonoBehaviour
             }
             foreach (THWidget randIndWidget in RandomIndicators)
             {
-                widgets.Add(IndicatorWidget.CreateComponent(IndicatorWidget));
+                widgets.Add(TestHarnessIndicatorWidget.CreateComponent(IndicatorWidget));
             }
             foreach (THWidget randIndWidget in RandomWidgets)
             {
                 for (int i = 0; i < randIndWidget.Count; i++)
                 {
                     int r = Random.Range(0, 3);
-                    if (r == 0) widgets.Add(BatteryWidget.CreateComponent(BatteryWidget));
-                    else if (r == 1) widgets.Add(IndicatorWidget.CreateComponent(IndicatorWidget));
-                    else widgets.Add(PortWidget.CreateComponent(PortWidget));
+                    if (r == 0) widgets.Add(TestHarnessBatteryWidget.CreateComponent(BatteryWidget));
+                    else if (r == 1) widgets.Add(TestHarnessIndicatorWidget.CreateComponent(IndicatorWidget));
+                    else widgets.Add(TestHarnessPortWidget.CreateComponent(PortWidget));
                 }
             }
         }
@@ -412,18 +445,18 @@ public enum TwitchPlaysMode
 
 public class TestHarness : MonoBehaviour
 {
-    public StatusLight StatusLightPrefab;
+    public TestHarnessStatusLight StatusLightPrefab;
     public TimerModule TimerModulePrefab;
     public TimerModule StrikelessTimerModulePrefab;
     public Transform ModuleCoverPrefab;
     public KMModuleBacking ModuleFoamBacking;
     public TwitchPlaysID TwitchIDPrefab;
-    public NeedyTimer NeedyTimerPrefab;
+    public TestHarnessNeedyTimer NeedyTimerPrefab;
 
-    public SerialNumber SerialNumberWidget;
-    public BatteryWidget BatteryWidget;
-    public PortWidget PortWidget;
-    public IndicatorWidget IndicatorWidget;
+    public TestHarnessSerialNumber SerialNumberWidget;
+    public TestHarnessBatteryWidget BatteryWidget;
+    public TestHarnessPortWidget PortWidget;
+    public TestHarnessIndicatorWidget IndicatorWidget;
     public TwoFactorWidget TwoFactorWidget;
     public CustomWidget CustomWidget;
 
@@ -437,7 +470,7 @@ public class TestHarness : MonoBehaviour
     bool gamepadEnabled = false;
     TestSelectable lastSelected;
 
-    AudioSource audioSource;
+    private Transform AudioSourceTransforms;
     [Range(0.0f, 1.0f)] public float AudioVolume = 0.25f;
     public List<AudioClip> AudioClips;
     public Dictionary<KMSoundOverride.SoundEffect, AudioSource> GameSoundEffectSources = new Dictionary<KMSoundOverride.SoundEffect, AudioSource>();
@@ -512,8 +545,12 @@ public class TestHarness : MonoBehaviour
         NeedyModules = FindObjectsOfType<KMNeedyModule>().ToList();
         var allModules = Modules.ToArray().Concat<Component>(NeedyModules.ToArray());
         foreach (Component moduleComponent in allModules)
+        {
+            if(moduleComponent is KMBombModule)
+		        fakeInfo.modules.Add(new KeyValuePair<KMBombModule, bool>((KMBombModule)moduleComponent, false));
             Handlers(moduleComponent.GetComponent<KMBombInfo>());
-
+        }
+        fakeInfo.needyModules = NeedyModules.ToList();
         ReplaceBombInfo();
         AddHighlightables();
         AddSelectables();
@@ -530,48 +567,29 @@ public class TestHarness : MonoBehaviour
         Debug.LogErrorFormat("There is an unassigned {0} on the following object: {1}", unassigned, string.Join(" > ", str.ToArray()));
     }
 
-    Component LogReplaceBombInfoError(FieldInfo f, MonoBehaviour s)
-    {
-        Component component = (Component) f.GetValue(s);
-        if (component == null)
-        {
-            var obj = s.transform;
-            LogErrorAtTransform(obj, string.Format("component of type {0}", f.FieldType.Name));
-        }
-        return component;
-    }
-
     void ReplaceBombInfo()
     {
-        HashSet<Component> components = new HashSet<Component>();
-        MonoBehaviour[] scripts = FindObjectsOfType<MonoBehaviour>();
-        foreach (MonoBehaviour s in scripts)
+        var components = new HashSet<Component>();
+        foreach (var gameInfo in FindObjectsOfType<KMGameInfo>())
         {
-            IEnumerable<FieldInfo> fields = s.GetType().GetFields();
-            foreach (FieldInfo f in fields)
+            if (!components.Add(gameInfo))
+                continue;
+            var info = gameInfo;
+            fakeInfo.OnLights += on =>
             {
-                if (f.FieldType == typeof(KMGameInfo))
-                {
-                    KMGameInfo component = (KMGameInfo) LogReplaceBombInfoError(f, s);
-                    if (component == null || !components.Add(component)) continue;
-
-                    component.OnLightsChange += new KMGameInfo.KMLightsChangeDelegate(fakeInfo.OnLightsChange);
-                    //component.OnAlarmClockChange += new KMGameInfo.KMAlarmClockChangeDelegate(fakeInfo.OnAlarm);
-                    continue;
-                }
-                if (f.FieldType == typeof(KMGameCommands))
-                {
-                    KMGameCommands component = (KMGameCommands) LogReplaceBombInfoError(f, s);
-                    if (component == null || !components.Add(component)) continue;
-
-                    component.OnCauseStrike += new KMGameCommands.KMCauseStrikeDelegate(fakeInfo.HandleStrike);
-                    continue;
-                }
-            }
+                if(info.OnLightsChange != null)
+                    info.OnLightsChange(on);
+            };
+        }
+        foreach (var gameCommands in FindObjectsOfType<KMGameCommands>())
+        {
+            if (!components.Add(gameCommands))
+                continue;
+            gameCommands.OnCauseStrike += fakeInfo.HandleStrike;
         }
     }
 
-    WidgetZone CreateWidgetArea(Vector3 rot, Vector3 pos, Vector3 scale, Transform parent, List<GameObject> areaList, string name)
+    TestHarnessWidgetZone CreateWidgetArea(Vector3 rot, Vector3 pos, Vector3 scale, Transform parent, List<GameObject> areaList, string name)
     {
         Transform widgetBase = new GameObject().transform;
         widgetBase.name = name;
@@ -586,7 +604,7 @@ public class TestHarness : MonoBehaviour
         widgetInner.SetParent(widgetBase, false);
         areaList.Add(widgetInner.gameObject);
 
-        return WidgetZone.CreateZone(widgetInner.gameObject);
+        return TestHarnessWidgetZone.CreateZone(widgetInner.gameObject);
     }
 
     void PrepareTwitchPlaysModule(Transform module)
@@ -635,14 +653,14 @@ public class TestHarness : MonoBehaviour
         return anchor;
     }
 
-    void PrepareBomb(List<KMBombModule> bombModules, List<KMNeedyModule> needyModules, ref List<Widget> widgets)
+    void PrepareBomb(List<KMBombModule> bombModules, List<KMNeedyModule> needyModules, ref List<TestHarnessWidget> widgets)
     {
         List<Transform> timerSideModules = new List<Transform>();
         List<Transform> modules = new List<Transform>();
         List<List<Transform>> anchors = new List<List<Transform>>();
         List<List<Transform>> timerAnchors = new List<List<Transform>>();
         List<List<Transform>> emptyAnchors = new List<List<Transform>>();
-        List<WidgetZone> widgetZones = new List<WidgetZone>();
+        List<TestHarnessWidgetZone> widgetZones = new List<TestHarnessWidgetZone>();
 
         timerSideModules.AddRange(bombModules.Where(x => x.RequiresTimerVisibility).Select(x => x.transform));
         timerSideModules.AddRange(needyModules.Where(x => x.RequiresTimerVisibility).Select(x => x.transform));
@@ -699,7 +717,7 @@ public class TestHarness : MonoBehaviour
                 DestroyImmediate(module.gameObject);
             }
 
-            widgetZones.AddRange(bomb.WidgetAreas.Select(WidgetZone.CreateZone));
+            widgetZones.AddRange(bomb.WidgetAreas.Select(TestHarnessWidgetZone.CreateZone));
 
         }
         else
@@ -928,20 +946,20 @@ public class TestHarness : MonoBehaviour
         Transform widgetsTransform = new GameObject("Widgets").transform;
         widgetsTransform.SetParent(_bomb);
 
-        SerialNumber sn = widgets.FirstOrDefault(x => x.GetType() == typeof(SerialNumber)) as SerialNumber;
+        TestHarnessSerialNumber sn = widgets.FirstOrDefault(x => x.GetType() == typeof(TestHarnessSerialNumber)) as TestHarnessSerialNumber;
         if (sn == null) throw new Exception("Could not locate the serial number widget. Cannot continue");
-        widgets = widgets.Where(x => x.GetType() != typeof(SerialNumber)).OrderBy(x => Random.value).ToList();
+        widgets = widgets.Where(x => x.GetType() != typeof(TestHarnessSerialNumber)).OrderBy(x => Random.value).ToList();
         widgets.Insert(0, sn);
 
         for (int i = 0; i < widgets.Count; i++)
         {
             //do things with each widget in the pool.  (If one widget won't fit on the bomb, discard it.)
-            Widget widget = widgets[i];
-            WidgetZone zone = WidgetZone.GetZone(widgetZones, widget);
+            TestHarnessWidget widget = widgets[i];
+            TestHarnessWidgetZone zone = TestHarnessWidgetZone.GetZone(widgetZones, widget);
             if (zone != null)
             {
                 widgetZones.Remove(zone);
-                List<WidgetZone> subZones = WidgetZone.SubdivideZoneForWidget(zone, widget);
+                List<TestHarnessWidgetZone> subZones = TestHarnessWidgetZone.SubdivideZoneForWidget(zone, widget);
                 if (subZones != null)
                 {
                     zone = subZones[0];
@@ -966,11 +984,11 @@ public class TestHarness : MonoBehaviour
         bomb.transform.localScale = Vector3.one * bomb.Scale;
     }
 
-    StatusLight CreateStatusLight(Transform module)
+    TestHarnessStatusLight CreateStatusLight(Transform module)
     {
         KMStatusLightParent statuslightparent = module.GetComponentInChildren<KMStatusLightParent>();
         if (statuslightparent == null) return null;
-        var statuslight = Instantiate<StatusLight>(StatusLightPrefab);
+        var statuslight = Instantiate<TestHarnessStatusLight>(StatusLightPrefab);
         statuslight.transform.SetParent(statuslightparent.transform, false);
         statuslight.transform.localPosition = Vector3.zero;
         statuslight.transform.localScale = Vector3.one;
@@ -989,6 +1007,9 @@ public class TestHarness : MonoBehaviour
         component.ModuleNamesHandler += new KMBombInfo.GetModuleNamesHandler(fakeInfo.GetModuleNames);
         component.SolvableModuleNamesHandler += new KMBombInfo.GetSolvableModuleNamesHandler(fakeInfo.GetSolvableModuleNames);
         component.SolvedModuleNamesHandler += new KMBombInfo.GetSolvedModuleNamesHandler(fakeInfo.GetSolvedModuleNames);
+        component.ModuleIDsHandler += new KMBombInfo.GetModuleIDsHandler(fakeInfo.GetModuleIDs);
+        component.SolvableModuleIDsHandler += new KMBombInfo.GetSolvableModuleIDsHandler(fakeInfo.GetSolvableModuleIDs);
+        component.SolvedModuleIDsHandler += new KMBombInfo.GetSolvedModuleIDsHandler(fakeInfo.GetSolvedModuleIDs);
         component.WidgetQueryResponsesHandler += new KMBombInfo.GetWidgetQueryResponsesHandler(fakeInfo.GetWidgetQueryResponses);
         component.IsBombPresentHandler += new KMBombInfo.KMIsBombPresent(fakeInfo.IsBombPresent);
     }
@@ -1017,14 +1038,12 @@ public class TestHarness : MonoBehaviour
         PrepareBomb(modules, needyModules, ref fakeInfo.widgets);
 
         fakeInfo.TimerModule = _timer;
-        fakeInfo.needyModules = needyModules.ToList();
         UpdateRoot(GetComponent<TestSelectable>());
         for (int i = 0; i < modules.Count; i++)
         {
             KMBombModule mod = modules[i];
-            StatusLight statuslight = CreateStatusLight(mod.transform);
+            TestHarnessStatusLight statuslight = CreateStatusLight(mod.transform);
 
-            fakeInfo.modules.Add(new KeyValuePair<KMBombModule, bool>(modules[i], false));
             modules[i].OnPass = delegate ()
             {
                 KeyValuePair<KMBombModule, bool> kvp = fakeInfo.modules.First(t => t.Key.Equals(mod));
@@ -1054,8 +1073,8 @@ public class TestHarness : MonoBehaviour
         {
             KMNeedyModule needyModule = needyModules[i];
 
-            StatusLight statusLight = CreateStatusLight(needyModule.transform);
-            NeedyTimer needyTimer = Instantiate(NeedyTimerPrefab);
+            TestHarnessStatusLight statusLight = CreateStatusLight(needyModule.transform);
+            TestHarnessNeedyTimer needyTimer = Instantiate(NeedyTimerPrefab);
             needyTimer.transform.localPosition = Vector3.zero;
             needyTimer.transform.localRotation = Quaternion.identity;
             needyTimer.transform.localScale = Vector3.one;
@@ -1086,13 +1105,10 @@ public class TestHarness : MonoBehaviour
 
         currentSelectable.ActivateChildSelectableAreas();
 
-        Transform audioSouceTransforms = new GameObject().transform;
-        audioSouceTransforms.name = "Audio Sources";
-        audioSouceTransforms.parent = transform;
-
-        audioSource = new GameObject().AddComponent<AudioSource>();
-        audioSource.transform.name = "PlaySoundHandler";
-        audioSource.transform.parent = audioSouceTransforms;
+        AudioSourceTransforms = new GameObject().transform;
+        AudioSourceTransforms.name = "Audio Sources";
+        AudioSourceTransforms.parent = transform;
+        
         KMAudio[] kmAudios = FindObjectsOfType<KMAudio>();
         foreach (KMAudio kmAudio in kmAudios)
         {
@@ -1108,7 +1124,7 @@ public class TestHarness : MonoBehaviour
         {
             AudioSource effectAudioSource = new GameObject().AddComponent<AudioSource>();
             effectAudioSource.transform.name = "SoundEffect." + effect;
-            effectAudioSource.transform.parent = audioSouceTransforms;
+            effectAudioSource.transform.parent = AudioSourceTransforms;
             effectAudioSource.loop = effect == KMSoundOverride.SoundEffect.NeedyWarning ||
                                      effect == KMSoundOverride.SoundEffect.AlarmClockBeep;
 
@@ -1124,16 +1140,30 @@ public class TestHarness : MonoBehaviour
         }
     }
 
+
+    private IEnumerator DestroyAudioSource(AudioSource source, float length)
+    {
+        yield return new WaitForSecondsRealtime(length);
+        try
+        {
+            Destroy(source.gameObject);
+        }
+        catch (MissingReferenceException) {}
+    }
+
     protected void PlaySoundHandler(string clipName, Transform t)
     {
         AudioClip clip = AudioClips == null ? null : AudioClips.FirstOrDefault(a => a.name == clipName);
-
         if (clip != null)
         {
+            var audioSource = new GameObject().AddComponent<AudioSource>();
+            audioSource.transform.parent = AudioSourceTransforms;
+            audioSource.transform.name = clipName;
             audioSource.volume = AudioVolume;
             audioSource.loop = false;
             audioSource.transform.position = t.position;
             audioSource.PlayOneShot(clip);
+            StartCoroutine(DestroyAudioSource(audioSource, clip.length));
         }
         else
             Debug.Log("Audio clip not found: " + clipName);
@@ -1147,12 +1177,25 @@ public class TestHarness : MonoBehaviour
 
         if (clip != null)
         {
+            var audioSource = new GameObject().AddComponent<AudioSource>();
+            audioSource.transform.parent = AudioSourceTransforms;
+            audioSource.transform.name = clipName;
             audioSource.volume = AudioVolume;
             audioSource.transform.position = t.position;
             audioSource.loop = loop;
             audioSource.clip = clip;
             audioSource.Play();
-            audioRef.StopSound = () => { audioSource.Stop(); };
+            audioRef.StopSound = () =>
+            {
+                try
+                {
+                    audioSource.Stop();
+                    Destroy(audioSource.gameObject);
+                }
+                catch (MissingReferenceException) { }
+            };
+            if(!loop)
+                StartCoroutine(DestroyAudioSource(audioSource, clip.length));
         }
         else
             Debug.Log("Audio clip not found: " + clipName);
@@ -1395,19 +1438,31 @@ public class TestHarness : MonoBehaviour
     {
         TestSelectable root = GetComponent<TestSelectable>();
 
-        if (currentSelectableArea != null && currentSelectableArea.Selectable.Interact())
+        if (currentSelectableArea != null)
         {
-            MoveCamera(currentSelectableArea.Selectable);
-            currentSelectable.DeactivateChildSelectableAreas(currentSelectableArea.Selectable);
-            currentSelectable = currentSelectableArea.Selectable;
-            if (root.Children.Contains(currentSelectable))
-                currentModule = currentSelectable;
+            if ((currentSelectableArea.Selectable.GetComponent<KMBombModule>() != null || currentSelectableArea.Selectable.GetComponent<KMNeedyModule>() != null) &&
+                currentSelectableArea.Selectable.ModSelectable.OnFocus != null)
+            {
+                currentSelectableArea.Selectable.ModSelectable.OnFocus();
+            }
+            if (currentSelectableArea.Selectable.Interact())
+            {
+                if (currentSelectable != null && currentSelectable.ModSelectable != null && currentSelectable.ModSelectable.OnDefocus != null)
+                {
+                    currentSelectable.ModSelectable.OnDefocus();
+                }
+                MoveCamera(currentSelectableArea.Selectable);
+                currentSelectable.DeactivateChildSelectableAreas(currentSelectableArea.Selectable);
+                currentSelectable = currentSelectableArea.Selectable;
+                if (root.Children.Contains(currentSelectable))
+                    currentModule = currentSelectable;
 
-            GetComponent<TestSelectable>().ActivateChildSelectableAreas();
-            if (currentModule != null) currentModule.SelectableArea.DeactivateSelectableArea();
+                GetComponent<TestSelectable>().ActivateChildSelectableAreas();
+                if (currentModule != null) currentModule.SelectableArea.DeactivateSelectableArea();
 
-            currentSelectable.ActivateChildSelectableAreas();
-            lastSelected = currentSelectable.GetCurrentChild();
+                currentSelectable.ActivateChildSelectableAreas();
+                lastSelected = currentSelectable.GetCurrentChild();
+            }
         }
     }
 
@@ -1423,6 +1478,10 @@ public class TestHarness : MonoBehaviour
     {
         if (currentSelectable.Parent != null && currentSelectable.Cancel())
         {
+            if (currentSelectable != null && currentSelectable.ModSelectable != null && currentSelectable.ModSelectable.OnDefocus != null)
+            {
+                currentSelectable.ModSelectable.OnDefocus();
+            }
             MoveCamera(currentSelectable.Parent);
             currentSelectable.DeactivateChildSelectableAreas(currentSelectable.Parent);
             currentSelectable = currentSelectable.Parent;
@@ -1464,6 +1523,7 @@ public class TestHarness : MonoBehaviour
                 {
                     AddHighlightables();
                     AddSelectables();
+                    testSelectable.UpdateChildrenPositions();
 
                     if (currentSelectable == testSelectable)
                     {
@@ -1517,7 +1577,7 @@ public class TestHarness : MonoBehaviour
     {
         if (GUILayout.Button("Activate Needy Modules"))
         {
-            foreach (NeedyTimer needyModule in fakeInfo.needyModuleTimers)
+            foreach (TestHarnessNeedyTimer needyModule in fakeInfo.needyModuleTimers)
             {
                 needyModule.StartTimer();
             }
@@ -1525,9 +1585,9 @@ public class TestHarness : MonoBehaviour
 
         if (GUILayout.Button("Deactivate Needy Modules"))
         {
-            foreach (NeedyTimer needyModule in fakeInfo.needyModuleTimers)
+            foreach (TestHarnessNeedyTimer needyModule in fakeInfo.needyModuleTimers)
             {
-                needyModule.StopTimer(NeedyTimer.NeedyState.InitialSetup);
+                needyModule.StopTimer(TestHarnessNeedyTimer.NeedyState.Terminated);
             }
         }
 
@@ -1660,6 +1720,20 @@ public class TestHarness : MonoBehaviour
     {
         lightsOn = false;
         UpdateAmbientIntensity();
+    }
+
+    public static string GetObjectPath(Transform transform)
+    {
+        var obj = transform;
+        var list = new List<string>();
+        while (obj != null)
+        {
+            list.Add(obj.gameObject.name);
+            obj = obj.parent;
+        }
+        list.Reverse();
+        var objectPath = string.Join(" → ", list.ToArray());
+        return objectPath;
     }
 }
 
