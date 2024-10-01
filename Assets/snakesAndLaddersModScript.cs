@@ -52,6 +52,7 @@ public class snakesAndLaddersModScript : MonoBehaviour {
 
     private int nextCorrectSquare=0;
     private int toAddOn=0;
+    private int lastRoll=0;
     private bool preventModuleUsage=true;
 
     bool moduleSolved;
@@ -61,6 +62,11 @@ public class snakesAndLaddersModScript : MonoBehaviour {
 
     void Start() {
         moduleId = moduleIdCounter++;
+        foreach (KMSelectable button in ModuleSelect.Children)
+        {
+            button.OnHighlight += delegate () { HLButton(button); };
+            button.OnHighlightEnded += delegate () { HLEndButton(); };
+        }
         GenerateBoard();
 
         moveSquare=true;
@@ -69,6 +75,49 @@ public class snakesAndLaddersModScript : MonoBehaviour {
         lightNewPos=PlayerBox.transform.parent.InverseTransformPoint(SquareBox[currentSquareId].transform.position);
         t=.999f;
         animateLight();
+    }
+
+    void HLButton(KMSelectable hovered)
+    {
+        if (moduleSolved == false)
+        {
+            for(int i = 0; i < SquareBox.Length; i++)
+            {
+                if(i == 99)
+                {
+                    SquareBox[99].GetComponent<SquareScript>().text.GetComponent<TextMesh>().text = ":)";
+                }
+                else
+                {
+                    if (SquareBox[i].GetComponent<KMSelectable>() == hovered)
+                    {
+                        if (SquareBox[i].GetComponent<SquareScript>().GetColour() == 0)
+                        {
+                            SquareBox[99].GetComponent<SquareScript>().text.GetComponent<TextMesh>().text = "R";
+                        }
+                        else if (SquareBox[i].GetComponent<SquareScript>().GetColour() == 1)
+                        {
+                            SquareBox[99].GetComponent<SquareScript>().text.GetComponent<TextMesh>().text = "B";
+                        }
+                        else if (SquareBox[i].GetComponent<SquareScript>().GetColour() == 2)
+                        {
+                            SquareBox[99].GetComponent<SquareScript>().text.GetComponent<TextMesh>().text = "G";
+                        }
+                        else
+                        {
+                            SquareBox[99].GetComponent<SquareScript>().text.GetComponent<TextMesh>().text = "Y";
+                        }
+                        break;
+                    }
+                }
+            }
+        }
+    }
+
+    void HLEndButton()
+    {
+        if(moduleSolved == false)
+            SquareBox[99].GetComponent<SquareScript>().text.GetComponent<TextMesh>().text = "100";
     }
 
     void Update() {
@@ -150,6 +199,7 @@ public class snakesAndLaddersModScript : MonoBehaviour {
                     r=Random.Range(0,ladders.Length);
                 }
                 showLadders.Add(r);
+                doLog("ladder " + (i + 1) + ": " + ladders[showLadders[i]].GetComponent<LadderScript>().start + " to " + ladders[showLadders[i]].GetComponent<LadderScript>().end);
             }
         }
 
@@ -160,6 +210,7 @@ public class snakesAndLaddersModScript : MonoBehaviour {
                     r=Random.Range(0,snakes.Length);
                 }
                 showSnakes.Add(r);
+                doLog("snake " + (i + 1) + ": " + snakes[showSnakes[i]].GetComponent<SnakeScript>().start + " to " + snakes[showSnakes[i]].GetComponent<SnakeScript>().end);
             }
         }
 
@@ -191,7 +242,7 @@ public class snakesAndLaddersModScript : MonoBehaviour {
             SquareBox[i].GetComponent<SquareScript>().SetNumber(i+1);
             SquareBox[i].GetComponent<SquareScript>().SetColour(r);
 
-            if(i%10==9)boardStr+="/";
+            if (i%10==9)boardStr+="/";
 
             SquareBox[i].GetComponent<KMSelectable>().OnInteract += delegate() {
                 PressSquare(j);
@@ -204,34 +255,46 @@ public class snakesAndLaddersModScript : MonoBehaviour {
     void CalculateNextAnswer() {
         if(currentSquareId==99) {
             moduleSolved=true;
+            doLog("100 square reached! Module Solved!");
+            SquareBox[99].GetComponent<SquareScript>().text.GetComponent<TextMesh>().text = "";
             BombModule.HandlePass();
+            return;
         }
 
         int n=SquareBox[currentSquareId].GetComponent<SquareScript>().GetNumber();
+        doLog("The status light is currently on the " + n + " square");
         int c=SquareBox[currentSquareId].GetComponent<SquareScript>().GetColour();
         int o=0;
-        if(c==0) {
-            if(n>=34&&n<=44)o=0;
-            else if(n>=89&&n<=99)o=1;
-            else if(n>=12&&n<=22)o=2;
-            else if(n>=23&&n<=33)o=3;
-            else if(n>=45&&n<=55)o=4;
-            else if(n>=67&&n<=77)o=5;
-            else if(n>=78&&n<=88)o=6;
-            else if(n>=56&&n<=66)o=7;
-            else o=8;
+        string[] cards = { "between 34 and 44", "between 89 and 99", "between 12 and 22", "between 23 and 33", "between 45 and 55", "between 67 and 77", "between 78 and 88", "between 56 and 66", "N.O.T.A." };
+        string[] cards2 = { "square northwest from the ", "square north from the ", "square northeast from the ", "square west from the ", "", "square east from the ", "square southwest from the ", "square south from the ", "square southeast from the " };
+        string[] cards3 = { "11", "10", "5", "8", "6", "4", "3", "2", "N.O.T.A." };
+        if (c==0) {
+            if (n >= 34 && n <= 44) o = 0;
+            else if (n >= 89 && n <= 99) o = 1;
+            else if (n >= 12 && n <= 22) o = 2;
+            else if (n >= 23 && n <= 33) o = 3;
+            else if (n >= 45 && n <= 55) o = 4;
+            else if (n >= 67 && n <= 77) o = 5;
+            else if (n >= 78 && n <= 88) o = 6;
+            else if (n >= 56 && n <= 66) o = 7;
+            else o = 8;
+            doLog("The number of this square is between " + cards[o] + ", the " + cards2[o] + "current square is correct");
         } else if(c==3) {
             int i=(int)Math.Floor(n/10f)%10;
-            if(n<10)o=8;
-            else if(i==8)o=0;
-            else if(i==2)o=1;
-            else if(i==6)o=2;
-            else if(i==3)o=3;
-            else if(i==5)o=4;
-            else if(i==7)o=5;
-            else if(i==4)o=6;
-            else if(i==9)o=7;
-            else o=8;
+            if (n < 10) o = 8;
+            else if (i == 8) o = 0;
+            else if (i == 2) o = 1;
+            else if (i == 6) o = 2;
+            else if (i == 3) o = 3;
+            else if (i == 5) o = 4;
+            else if (i == 7) o = 5;
+            else if (i == 4) o = 6;
+            else if (i == 9) o = 7;
+            else o = 8;
+            if(o == 8)
+                doLog("The number of this square has N.O.T.A. in the ten's digit, the " + cards2[o] + "current square is correct");
+            else
+                doLog("The number of this square has a " + i + " in the ten's digit, the " + cards2[o] + "current square is correct");
         } else if(c==2) {
             int i=n%10;
             if(i==5)o=0;
@@ -243,6 +306,10 @@ public class snakesAndLaddersModScript : MonoBehaviour {
             else if(i==6)o=6;
             else if(i==8)o=7;
             else o=8;
+            if (o == 8)
+                doLog("The number of this square has N.O.T.A. in the one's digit, the " + cards2[o] + "current square is correct");
+            else
+                doLog("The number of this square has a " + i + " in the one's digit, the " + cards2[o] + "current square is correct");
         } else if(c==1) {
             if(n%11==0)o=0;
             else if(n%10==0)o=1;
@@ -253,10 +320,11 @@ public class snakesAndLaddersModScript : MonoBehaviour {
             else if(n%3==0)o=6;
             else if(n%2==0)o=7;
             else o=8;
+            doLog("The number of this square is divisible by " + cards3[o] + ", the " + cards2[o] + "current square is correct");
         }
 
         nextCorrectSquare=CalculateSquareByPosition(n,o);
-        doLog("answer: "+nextCorrectSquare);
+        doLog("# of correct square: "+nextCorrectSquare);
     }
 
     int CalculateSquareByPosition(int n,int o) {
@@ -292,7 +360,8 @@ public class snakesAndLaddersModScript : MonoBehaviour {
         preventModuleUsage=true;
         moveSquare=true;
         toAddOn=r;
-        if(currentSquareId>99)currentSquareId=99;
+        lastRoll = r;
+        if (currentSquareId>99)currentSquareId=99;
         lightOldPos=PlayerBox.transform.localPosition;
         lightNewPos=PlayerBox.transform.parent.InverseTransformPoint(SquareBox[currentSquareId].transform.position);
         t=0f;
@@ -306,22 +375,55 @@ public class snakesAndLaddersModScript : MonoBehaviour {
         if(moduleSolved)return;
         if(preventModuleUsage)return;
 
-        doLog("pressed: "+(buttonId+1).ToString());
-
         if((buttonId+1)==nextCorrectSquare) {
+            doLog("The " + (buttonId + 1).ToString() + " square has been pressed, that is correct, moving status light forward");
             moveXSquares();
         } else {
+            doLog("The " + (buttonId + 1).ToString() + " square has been pressed, that is incorrect, strike!");
             BombModule.HandleStrike();
         }
 
         return;
     }
 
-#pragma warning disable 414
-    public readonly string TwitchHelpMessage = "Use “!{0} press <n>” to press the button numbered n!";
-#pragma warning restore 414
+    //twitch plays
+    #pragma warning disable 414
+    public readonly string TwitchHelpMessage = "Use “!{0} press <n>” to press the button numbered n! Use !{0} colorblind <n> to find out the color of the button numbered n!";
+    #pragma warning restore 414
     IEnumerator ProcessTwitchCommand(string command)
     {
+        command = command.ToLower();
+        if (command.StartsWith("colorblind "))
+        {
+            string temp2 = command;
+            temp2 = temp2.Replace(" ","");
+            if (temp2.Equals("colorblind"))
+            {
+                yield break;
+            }
+            string[] parameters = command.Split(' ');
+            int temp = -1;
+            int.TryParse(parameters[1], out temp);
+            yield return null;
+            if (temp <= -1 || temp >= 101)
+            {
+                yield return "sendtochaterror Digit out of range!";
+                yield break;
+            }
+            else
+            {
+                string[] colors = { "Red", "Blue", "Green", "Yellow" };
+                if(temp == 100)
+                {
+                    yield return "sendtochat The color of the " + parameters[1] + " square is :)";
+                }
+                else
+                {
+                    yield return "sendtochat The color of the " + parameters[1] + " square is " + colors[SquareBox[temp - 1].GetComponent<SquareScript>().GetColour()];
+                }
+                yield break;
+            }
+        }
         string commandl = command.Replace("press ", "");
         int tried;
         if(commandl=="hole") {
@@ -332,8 +434,12 @@ public class snakesAndLaddersModScript : MonoBehaviour {
             if(tried>0){
                 if(tried<101){
                     yield return null;
-                    yield return SquareBox[tried-1].GetComponent<KMSelectable>();
-                    yield return SquareBox[tried-1].GetComponent<KMSelectable>();
+                    SquareBox[tried - 1].GetComponent<KMSelectable>().OnInteract();
+                    yield return new WaitForSeconds(0.1f);
+                    if(currentSquareId + 1 + lastRoll > 99)
+                    {
+                        yield return "solve";
+                    }
                 }
                 else{
                     yield return null;
@@ -351,6 +457,16 @@ public class snakesAndLaddersModScript : MonoBehaviour {
             yield return null;
             yield return "sendtochaterror Digit not valid.";
             yield break;
+        }
+    }
+
+    IEnumerator TwitchHandleForcedSolve()
+    {
+        while (!moduleSolved)
+        {
+            while (moveSquare) { yield return true; yield return new WaitForSeconds(0.1f); }
+            SquareBox[nextCorrectSquare-1].GetComponent<KMSelectable>().OnInteract();
+            yield return new WaitForSeconds(0.1f);
         }
     }
 }
